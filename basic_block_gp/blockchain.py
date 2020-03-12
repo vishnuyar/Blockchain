@@ -79,20 +79,20 @@ class Blockchain(object):
     def last_block(self):
         return self.chain[-1]
 
-    # def proof_of_work(self, block):
-    #     """
-    #     Simple Proof of Work Algorithm
-    #     Stringify the block and look for a proof.
-    #     Loop through possibilities, checking each one against `valid_proof`
-    #     in an effort to find a number that is a valid proof
-    #     :return: A valid proof for the provided block
-    #     """
-    #     proof = 0
-    #     json_block = json.dumps(block,sort_keys=True)
-    #     while self.valid_proof(json_block,proof) is False:
-    #         proof +=1
-    #     print(proof)
-    #     return proof
+    def proof_of_work(self, block):
+        """
+        Simple Proof of Work Algorithm
+        Stringify the block and look for a proof.
+        Loop through possibilities, checking each one against `valid_proof`
+        in an effort to find a number that is a valid proof
+        :return: A valid proof for the provided block
+        """
+        proof = 0
+        json_block = json.dumps(block,sort_keys=True)
+        while self.valid_proof(json_block,proof) is False:
+            proof +=1
+        print(proof)
+        return proof
 
     @staticmethod
     def valid_proof(block_string, proof):
@@ -127,31 +127,21 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
-@app.route('/mine', methods=['POST'])
+@app.route('/mine', methods=['GET'])
 def mine():
-    recd_data = request.get_json()
-    block_id = recd_data['id']
-    block_proof = recd_data['proof']
+    # Run the proof of work algorithm to get the next proof
+    proof = blockchain.proof_of_work(blockchain.last_block)
+​
+    # Forge the new Block by adding it to the chain with the proof
+    previous_hash = blockchain.hash(blockchain.last_block)
+    block = blockchain.new_block(proof, previous_hash)
+​
+    response = {
+        'new_block': block
+    }
+​
+    return jsonify(response), 200
 
-      
-    #check block_id and block_proof should be present
-    if (block_id is not None) & (block_proof is not None):
-        #create a new block with this proof
-        previous_hash = blockchain.hash(blockchain.last_block)
-        prev_block = blockchain.last_block
-        string_block = json.dumps(prev_block,sort_keys=True)
-        if blockchain.valid_proof(string_block,block_proof):
-            blockchain.new_block(block_proof,previous_hash)
-            response = {
-                "message":"New Block Forged"
-            }            
-        else:
-            response = {"message":"Proof failed"}
-    else:
-        response = {
-            "message":"Both Id and Proof should be present"
-            }
-    return jsonify(response),200
 
 
 @app.route('/chain', methods=['GET'])
