@@ -109,9 +109,9 @@ class Blockchain(object):
         """
         block_string_proof = f'{block_string}{proof}'.encode()
         hash_block = hashlib.sha256(block_string_proof).hexdigest()
-        print(block_string)
+        #print(block_string)
         if hash_block[:6]=="000000":
-            print(hash_block)
+            #print(hash_block)
             return True
         else:
             return False
